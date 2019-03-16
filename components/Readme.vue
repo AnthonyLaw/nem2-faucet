@@ -9,15 +9,21 @@ section.section
           | &nbsp;faucet connected to&nbsp;
           a(:href="publicUrl" target="_blank"): strong {{publicUrl}}
           | .
+        li
+          strong "0x{{mosaicId}}"
+          | &nbsp;alias&nbsp;
+          strong cat.currency
+          | &nbsp;namespace
+          |.
         li You can get&nbsp;
-          strong "{{mosaicId}}"
+          strong "0x{{mosaicId}}"
           | &nbsp;randomly from&nbsp;
           strong {{outMin}}
           | &nbsp;to&nbsp;
           strong {{outMax}}
           |.
         li Please send back&nbsp;
-          strong "{{mosaicId}}"
+          strong "0x{{mosaicId}}"
           | &nbsp;when you no longer need.
         li This is an experimental server, the spec can be change without notice.
         li Good luck! NEM development!
