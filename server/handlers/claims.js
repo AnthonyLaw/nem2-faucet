@@ -32,7 +32,7 @@ const handler = conf => {
         conf.RECAPTCHA_ENDPOINT
       ).catch(_ => false)
       if (!reCaptchaResult) {
-        res.status(422).json({ error: 'Failed ReCaptcha.' })
+        return res.status(422).json({ error: 'Failed ReCaptcha.' })
       }
     } else {
       console.debug('Disabled ReCaptcha')

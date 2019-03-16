@@ -1,3 +1,4 @@
+const rx = require('rxjs')
 const op = require('rxjs/operators')
 const nem = require('nem2-sdk')
 
@@ -7,27 +8,27 @@ const handler = conf => {
   const mosaicHttp = new nem.MosaicHttp(conf.API_URL)
   const mosaicService = new nem.MosaicService(accountHttp, mosaicHttp)
 
-  const distributionMosaicIdPromise = conf.MOSAIC_HEX
-    ? Promise.resolve(new nem.MosaicId(conf.MOSAIC_ID))
-    : namespaceHttp.getLinkedMosaicId(new nem.NamespaceId(conf.MOSAIC_ID)).toPromise()
+  const distributionMosaicIdObservable = conf.MOSAIC_HEX
+    ? rx.of(new nem.MosaicId(conf.MOSAIC_ID))
+    : namespaceHttp.getLinkedMosaicId(new nem.NamespaceId(conf.MOSAIC_ID))
 
-  return async (_req, res, next) => {
-    const distributionMosaicId = await distributionMosaicIdPromise
-    console.debug('Distribution Mosaic', distributionMosaicId.toHex())
-
-    accountHttp
-      .getAccountInfo(conf.FAUCET_ACCOUNT.address)
+  return (_req, res, next) => {
+    distributionMosaicIdObservable
       .pipe(
-        op.mergeMap(account => {
-          return mosaicService
-            .mosaicsAmountViewFromAddress(account.address)
-            .pipe(
-              op.mergeMap(_ => _),
-              op.find(mosaicView =>
-                mosaicView.mosaicInfo.mosaicId.equals(distributionMosaicId)
-              ),
-              op.map(mosaicView => ({ mosaicView, account }))
-            )
+        op.mergeMap(distributionMosaicId => {
+          return accountHttp.getAccountInfo(conf.FAUCET_ACCOUNT.address).pipe(
+            op.mergeMap(account => {
+              return mosaicService
+                .mosaicsAmountViewFromAddress(account.address)
+                .pipe(
+                  op.mergeMap(_ => _),
+                  op.find(mosaicView =>
+                    mosaicView.mosaicInfo.mosaicId.equals(distributionMosaicId)
+                  ),
+                  op.map(mosaicView => ({ mosaicView, account }))
+                )
+            })
+          )
         }),
         op.catchError(err => {
           if (err.code === 'ECONNREFUSED') {
@@ -35,7 +36,7 @@ const handler = conf => {
           }
           const res = JSON.parse(err.response.text)
           if (res.code === 'ResourceNotFound') {
-            throw new Error(res.message)
+            throw new Error(`${res.code}: ${res.message}`)
           } else {
             throw new Error('Something wrong with MosaicService response')
           }
