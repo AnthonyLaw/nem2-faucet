@@ -138,7 +138,7 @@ export default {
         .post('/claims', formData)
         .then(response => {
           this.info(`Send your declaration.`)
-          this.success(`Amount: ${response.data.amount} ${this.mosaicId}`)
+          this.success(`Amount: ${response.data.amount} 0x${this.mosaicId}`)
           this.success(`Transaction Hash: ${response.data.txHash}`)
         })
         .catch(err => {
